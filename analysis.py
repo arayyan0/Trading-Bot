@@ -3,8 +3,12 @@ import pandas as pd
 
 def momentum_check(ticker='CSU',max_buy=95,max_sell=105):
     
-    if ticker[-3:]=='.TO':
-        ticker=ticker[:-3]
+    #print('Starting {}'.format(ticker))
+    try:
+        if str(ticker[-3:])=='.TO':
+            ticker=ticker[:-3]
+    except TypeError:
+        return [],[]
     
     data = pd.read_csv('../Collected_Data/Close/{}.csv'.format(ticker))
     

@@ -1,6 +1,8 @@
 from collect import *
 from analysis import *
 from gather_exchange_tickers import *
+import csv
+import os
 
 def plot():
     #collect_data(intraday=False)
@@ -25,15 +27,21 @@ def print_info(ticker='CSU'):
     
 def save_all_stocks():
     
-    stocks = save_sp500_tickers()+save_tsx()
-    #stocks = save_tsx()
+    #stocks = save_sp500_tickers()+save_tsx()
+    stocks = save_tsx()
     print(stocks)
     for i in stocks:
-        collect_data(i)
+        try:
+            collect_data(i)
+        except:
+            continue
  
 def momentum_analysis():
     
     stocks = save_tsx()
+    
+    if os.path.isfile('analysis_results.csv'):
+        os.remove('analysis_resuslts.csv')
     
     buy_list = [90,92,94,96]
     sell_list = [110,108,106,104]
@@ -41,11 +49,14 @@ def momentum_analysis():
     mast = {}
     
     for i in stocks:
+        
         for j in buy_list:
             for k in sell_list:
                 buy,sell = momentum_check(i,j,k)
+                if buy==[] and sell ==[]:
+                    continue
                 result = np.sum(sell)-np.sum(buy[:len(sell)])
-                mast['{}{}'.format(j,k)]=result
+                mast['{}-{}'.format(j,k)]=result
                 
 # =============================================================================
 #         get_money([mast['90110'],mast['90108'],mast['90106'],mast['90104'],\
@@ -53,18 +64,25 @@ def momentum_analysis():
 #                    mast['94110'],mast['v94108'],mast['94106'],mast['94104'],\
 #                    mast['96110'],mast['96108'],mast['96106'],mast['96104']],i)
 # =============================================================================
-        
+        if buy==[] and sell==[]:
+            continue
         df = pd.DataFrame({'Ticker':[i]})
         for k,j in mast.items():
             df[k]=j
         if i[-3:]=='.TO':
             i=i[:-3]
         close = pd.read_csv('../Collected_Data/Close/{}.csv'.format(i))
-        df['']=close.iloc[-1]['Adj Close']
-        df.to_csv('analysis_results.csv', mode='a', header=False)
+        df['Price']=close.iloc[-1]['Adj Close']
+        df['Return/Price']=df['96-108']/df['Price']
+        
+        if os.path.isfile('analysis_results.csv'):
+            df.to_csv('analysis_results.csv', mode='a', header=False)
+        else:
+            df.to_csv('analysis_results.csv', header=True)
     
         print('done with {}'.format(i))
     
 #print_info('CSU.TO')    
+#save_all_stocks()
 #save_all_stocks()
 momentum_analysis()

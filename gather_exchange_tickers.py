@@ -1,20 +1,14 @@
 import pickle
 import bs4 as bs
 import requests
+import pandas as pd
 
 def save_tsx():
     '''Basically copy pasted save_sp500_tickers and changed the url'''
     
-    resp=requests.get('https://en.wikipedia.org/wiki/S%26P/TSX_Composite_Index')
-    soup = bs.BeautifulSoup(resp.text,'lxml')
-    table = soup.find('table',{'class':'wikitable sortable'})
-    stock_names = []
-    for row in table.findAll('tr')[1:]:
-        ticker = row.findAll('td')[0].text+str('.TO')
-        stock_names.append('{}'.format(ticker))
-            
-    with open('tsxtickers.pickle','wb') as f:
-        pickle.dump(stock_names,f)
+    df = pd.read_csv('tsx_tickers.csv')
+    
+    stock_names = df['Symbol']
     
     return stock_names
 
