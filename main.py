@@ -3,6 +3,7 @@ from analysis import *
 from gather_exchange_tickers import *
 import csv
 import os
+import time
 
 def plot():
     #collect_data(intraday=False)
@@ -17,18 +18,10 @@ def plot():
     ax.set_ylim(85,120)
     ax.set_xlim(2300,2510)
     
-def print_info(ticker='CSU'):
-    
-    try:
-        momentum_check(ticker)
-    except FileNotFoundError:
-        collect_data(ticker)
-        momentum_check(ticker)
-    
 def save_all_stocks():
     
-    #stocks = save_sp500_tickers()+save_tsx()
-    stocks = save_tsx()
+    stocks = save_sp500_tickers()+save_tsx()
+    #stocks = save_tsx()
     print(stocks)
     for i in stocks:
         try:
@@ -38,10 +31,11 @@ def save_all_stocks():
  
 def momentum_analysis():
     
-    stocks = save_tsx()
+    #stocks = save_tsx()
+    stocks = save_sp500_tickers()+save_tsx()
     
     if os.path.isfile('analysis_results.csv'):
-        os.remove('analysis_resuslts.csv')
+        os.remove('analysis_results.csv')
     
     buy_list = [90,92,94,96]
     sell_list = [110,108,106,104]
@@ -61,7 +55,7 @@ def momentum_analysis():
 # =============================================================================
 #         get_money([mast['90110'],mast['90108'],mast['90106'],mast['90104'],\
 #                    mast['92110'],mast['92108'],mast['92106'],mast['92104'],\
-#                    mast['94110'],mast['v94108'],mast['94106'],mast['94104'],\
+#                    mast['94110'],mast['94108'],mast['94106'],mast['94104'],\
 #                    mast['96110'],mast['96108'],mast['96106'],mast['96104']],i)
 # =============================================================================
         if buy==[] and sell==[]:
@@ -69,20 +63,29 @@ def momentum_analysis():
         df = pd.DataFrame({'Ticker':[i]})
         for k,j in mast.items():
             df[k]=j
+        ticker = i
         if i[-3:]=='.TO':
             i=i[:-3]
         close = pd.read_csv('../Collected_Data/Close/{}.csv'.format(i))
         df['Price']=close.iloc[-1]['Adj Close']
         df['Return/Price']=df['96-108']/df['Price']
+        try:
+            EPS, PE_Ratio, Market_Cap = from_marketwatch(ticker)
+        except:
+            time.sleep(20)
+            EPS, PE_Ratio, Market_Cap = from_marketwatch(ticker)
+        df['EPS']=EPS
+        df['P/E Ratio']=PE_Ratio
+        df['Market Cap']=Market_Cap
         
         if os.path.isfile('analysis_results.csv'):
             df.to_csv('analysis_results.csv', mode='a', header=False)
         else:
             df.to_csv('analysis_results.csv', header=True)
-    
+            
+        time.sleep(5)
         print('done with {}'.format(i))
     
-#print_info('CSU.TO')    
-#save_all_stocks()
 #save_all_stocks()
 momentum_analysis()
+#valuation()

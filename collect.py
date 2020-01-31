@@ -26,7 +26,7 @@ def instantaneous_info(ticker='CSU.TO'):
     
     stock = yf.Ticker(ticker)
     
-    print(stock.recommendations)
+    return stock.get_info()
     
 def momentum(data):
     

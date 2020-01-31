@@ -4,28 +4,20 @@ import requests
 import pandas as pd
 
 def save_tsx():
-    '''Basically copy pasted save_sp500_tickers and changed the url'''
+    '''Basically copy pasted save_sp500_tickers'''
     
     df = pd.read_csv('tsx_tickers.csv')
     
-    stock_names = df['Symbol']
+    stock_names = df['Symbol']+str('.TO')
     
-    return stock_names
+    return list(stock_names)
 
 def save_sp500_tickers():
     
-    '''This function takes the S&P 500 list and creates csvs for each of them
-    using beautiful soup'''
+    '''This function takes the S&P 500 list'''
     
-    resp=requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
-    soup = bs.BeautifulSoup(resp.text,'lxml')
-    table = soup.find('table',{'class':'wikitable sortable'})
-    stock_names = []
-    for row in table.findAll('tr')[1:]:
-        ticker = row.findAll('td')[0].text[:-1]
-        stock_names.append(ticker)
-            
-    with open('sp500tickers.pickle','wb') as f:
-        pickle.dump(stock_names,f)
+    df = pd.read_csv('sp-500.csv')
     
-    return stock_names
+    stock_names = df['Symbol']
+    
+    return list(stock_names)
