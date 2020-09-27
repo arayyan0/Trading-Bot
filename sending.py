@@ -1,9 +1,8 @@
 from questrade_api import Questrade
-q = Questrade(refresh_token="sTjfVl99dEjS6M9vACjE4C7TuiVS7ElE0")
-#q = Questrade()
+import numpy as np
 
-print(q.markets_quote(34658))   
+token = np.loadtxt('../token.txt')
+print(token)
+q = Questrade(refresh_token=token)
 
-#import requests
-#response = requests.get("https://api05.iq.questrade.com/")
-#print(response)
+print(q.markets_quote(34658))

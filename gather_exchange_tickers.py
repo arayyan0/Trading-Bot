@@ -1,16 +1,18 @@
-import pickle
-import bs4 as bs
-import requests
 import pandas as pd
 
 def save_tsx():
     '''Basically copy pasted save_sp500_tickers'''
     
     df = pd.read_csv('tsx_tickers.csv')
+    df = df.dropna()
     
-    stock_names = df['Symbol']+str('.TO')
+    stock_list = []
+    for index,row in df.iterrows():
+        if '.' in str(row['Symbol']):
+            row['Symbol'] = str(row['Symbol']).replace('.','-')
+        stock_list.append(str(row['Symbol'])+str('.TO'))
     
-    return list(stock_names)
+    return stock_list
 
 def save_sp500_tickers():
     

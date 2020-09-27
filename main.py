@@ -1,91 +1,41 @@
-from collect import *
-from analysis import *
-from gather_exchange_tickers import *
-import csv
-import os
+from collect import save_all_stocks
+from analysis import momentum_analysis,from_online
+from tracker import track_buys_sells,cull_stocks,plot_debt
 import time
+import datetime as dt
+import numpy as np
 
-def plot():
-    #collect_data(intraday=False)
-    stuff = pd.read_csv('../Collected_Data/Close/CSU.csv')
-    
-    fig = plt.figure(figsize=[18,12])
-    
-    plt.plot(stuff['Date'],stuff['Momentum'])
-    #plt.plot(100*np.ones(len(stuff['Date'])),stuff['Date'])
-    
-    ax=plt.gca()
-    ax.set_ylim(85,120)
-    ax.set_xlim(2300,2510)
-    
-def save_all_stocks():
-    
-    stocks = save_sp500_tickers()+save_tsx()
-    #stocks = save_tsx()
-    print(stocks)
-    for i in stocks:
-        try:
-            collect_data(i)
-        except:
-            continue
- 
-def momentum_analysis():
-    
-    #stocks = save_tsx()
-    stocks = save_sp500_tickers()+save_tsx()
-    
-    if os.path.isfile('analysis_results.csv'):
-        os.remove('analysis_results.csv')
-    
-    buy_list = [90,92,94,96]
-    sell_list = [110,108,106,104]
-    
-    mast = {}
-    
-    for i in stocks:
-        
-        for j in buy_list:
-            for k in sell_list:
-                buy,sell = momentum_check(i,j,k)
-                if buy==[] and sell ==[]:
-                    continue
-                result = np.sum(sell)-np.sum(buy[:len(sell)])
-                mast['{}-{}'.format(j,k)]=result
-                
-# =============================================================================
-#         get_money([mast['90110'],mast['90108'],mast['90106'],mast['90104'],\
-#                    mast['92110'],mast['92108'],mast['92106'],mast['92104'],\
-#                    mast['94110'],mast['94108'],mast['94106'],mast['94104'],\
-#                    mast['96110'],mast['96108'],mast['96106'],mast['96104']],i)
-# =============================================================================
-        if buy==[] and sell==[]:
-            continue
-        df = pd.DataFrame({'Ticker':[i]})
-        for k,j in mast.items():
-            df[k]=j
-        ticker = i
-        if i[-3:]=='.TO':
-            i=i[:-3]
-        close = pd.read_csv('../Collected_Data/Close/{}.csv'.format(i))
-        df['Price']=close.iloc[-1]['Adj Close']
-        df['Return/Price']=df['96-108']/df['Price']
-        try:
-            EPS, PE_Ratio, Market_Cap = from_marketwatch(ticker)
-        except:
-            time.sleep(20)
-            EPS, PE_Ratio, Market_Cap = from_marketwatch(ticker)
-        df['EPS']=EPS
-        df['P/E Ratio']=PE_Ratio
-        df['Market Cap']=Market_Cap
-        
-        if os.path.isfile('analysis_results.csv'):
-            df.to_csv('analysis_results.csv', mode='a', header=False)
-        else:
-            df.to_csv('analysis_results.csv', header=True)
-            
-        time.sleep(5)
-        print('done with {}'.format(i))
-    
 #save_all_stocks()
-momentum_analysis()
-#valuation()
+#momentum_analysis()
+#track_buys_sells('eqb.TO')
+#cull_stocks()
+
+def is_worktime():
+    '''Checks if the current time aligns with regular trading times for the east coast'''
+    now = dt.datetime.today()
+    if now.date().weekday()<5 and dt.time(9,30) <= now.time() and \
+    now.time() <= dt.time(16,30):
+        return True
+    else:
+        return False
+    
+def run(): 
+    
+    if is_worktime():
+        pass
+    elif is_worktime()==False:
+        #save_all_stocks()
+        #momentum_analysis()
+        #cull_stocks()
+        
+        with open('acceptable.txt') as f:
+            content = f.readlines()
+        acceptable = [x.strip() for x in content] 
+        
+        ticker = 'ECN.TO'
+        max_buy = 96
+        max_sell = 110
+        
+        plot_debt(ticker=ticker,max_buy=max_buy,max_sell=max_sell)
+        
+run()

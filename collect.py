@@ -1,11 +1,22 @@
+from gather_exchange_tickers import save_sp500_tickers, save_tsx
 import yfinance as yf
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
+import os
+import fnmatch
 
 def collect_data(ticker='CSU.TO',intraday=False):
     '''Compiles all the information wanted to be saved as a csv'''
     
+    if ticker[-3:]=='.TO':
+        pos = ticker[:-3].find('.',0,-1)
+        if pos!=-1:
+            ticker = ticker.replace('.','-',1)
+        print(ticker)
+    else:
+        pos = ticker.find('.',0,-1)
+        if pos!=-1:
+            ticker = ticker.replace('.','-',1)
+        print(ticker)
+        
     if intraday:
         data = yf.download(tickers=ticker,period='1mo',interval='15m')
     else:
@@ -22,11 +33,11 @@ def collect_data(ticker='CSU.TO',intraday=False):
     else:
         data.to_csv('../Collected_Data/Close/{}.csv'.format(ticker))
     
-def instantaneous_info(ticker='CSU.TO'):
+def get_info(ticker='CSU.TO'):
     
     stock = yf.Ticker(ticker)
     
-    return stock.get_info()
+    return stock.info
     
 def momentum(data):
     
@@ -48,3 +59,21 @@ def momentum(data):
     data['Momentum']=momentum
     
     return data
+
+def save_all_stocks():
+    
+    if not os.path.exists('../Collected_Data/Intraday/'):
+        os.makedirs('../Collected_Data/Intraday/')
+        
+    if not os.path.exists('../Collected_Data/Close/'):
+        os.makedirs('../Collected_Data/Close/')
+    
+    #stocks = save_sp500_tickers()+save_tsx()
+    stocks = save_tsx()
+    print(stocks)
+    for i in stocks:
+        
+        try:
+            collect_data(i)
+        except:
+            continue
